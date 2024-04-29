@@ -5,19 +5,21 @@ const Productos = require("./data/index");
 const fs = require("fs");
 const translate = require('node-google-translate-skidz');
 const { JSDOM } = require('jsdom');
-const {cabecera, fin, inicioContenedor, finContenedor} = require("./componentes");
+const {cabecera,modal, fin, inicioContenedor, finContenedor, funcionalidad} = require("./componentes");
  
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.listen(4000, ()=>{
-    console.log("en puerto 4000") ;
+app.listen(3000, ()=>{
+    console.log("en puerto 3000") ;
     
 });
  
+try{
 
-const getProductosTraducidos = (callback) => {
+
+const getProductosTraducidos = async (callback) => {
  
   Productos((productos) => {
     const productosTraducidos = [];
@@ -66,12 +68,22 @@ const getProductosTraducidos = (callback) => {
  
 let html = cabecera;
 html += inicioContenedor;
+html += modal;
 app.get("/", (req, res) => {
     getProductosTraducidos((productosTraducidos) => {
-    
       
-       html += "<div class='listado col-12 row'>";
+      
+      html += "<div class='listado col-12 row'>";
       productosTraducidos.forEach((producto) => {
+  
+        var endescuento = producto.category =="electronics" ? true : false;
+        var precioProducto = producto.price;
+        if(endescuento) {precioProducto = precioProducto - (precioProducto * (10 / 100));}
+        else{
+          producto.price ;
+        }
+
+        
         html += `
                     <div class='col-lg-3 col-md-3 col-sm-12'>
                     <div class="card" style='padding : 2%; margin-bottom:2%; height:400px;'>
@@ -81,8 +93,18 @@ app.get("/", (req, res) => {
                       <p class="card-text truncate-text">${producto.description}</p> 
                       <p>Categoría:  ${producto.category} </p>
                       <div class="d-flex justify-content-between align-items-end">
-                      <span class="btn btn-warning">$${producto.price}</span>
-                      <button class="btn btn-info" style="width: 100px!important;" productId="${producto.id}">Al carrito!</button>
+                      <span class="btn btn-warning">$${precioProducto}</span>
+                      ${endescuento ? "<span class='btn btn-danger'>10% off! </span>" : ""}
+                      
+                      <button 
+                        class="btn btn-info agregarCarrito" 
+                        style="width: 100px!important;" 
+                        productId="${producto.id}"
+                        productnombre="${producto.title}"
+                        productPrice ="${precioProducto }"
+                 
+                        id="agregar${producto.id}"
+                         >Al carrito!</button>
                         </div>
                       </div>
                   </div>
@@ -93,6 +115,7 @@ app.get("/", (req, res) => {
       html += "</div>";
       html += finContenedor;
       html += fin;
+      html += funcionalidad;
        
       res.send(html);
     });
@@ -142,10 +165,15 @@ app.get("/", (req, res) => {
         content+=`</tbody>
         </table>
       </div>
-      <button class="btn btn-success">Comprar!</button> `;
+      <button class="btn btn-success"  ">Comprar!</button> `;
 
      content +=finContenedor;
      content += fin;
      res.send(content);
-  })
+  });
+
+}
+catch(error){
+  console.error(" Intente nuevamente");
+}
 module.exports = app;
