@@ -90,9 +90,12 @@ const cabecera = `
     background: white;
     max-height: 600px;
 }
- 
+.btn-danger {
+position: absolute;
+top: 0;
+right: 0;
 </style>
-
+}
 
 `;
 const inicioContenedor = ` <div class="container">
